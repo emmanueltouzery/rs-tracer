@@ -37,6 +37,14 @@ impl_op_ex_commutative!(* |a: &f32, b: &V3| -> V3 {
     }
 });
 
+impl_op_ex!(/ |a: &V3, b: &f32| -> V3 {
+    V3 {
+        x: a.x/b,
+        y: a.y/b,
+        z: a.z/b
+    }
+});
+
 pub fn v3_to_color(vec: &V3) -> Color {
     Color {
         r: vec.x,
