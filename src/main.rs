@@ -1,53 +1,10 @@
 // based on the "Ray Tracing in a Weekend" book
-use std::ops;
+
+mod v3color;
+use v3color::*;
 
 static WIDTH: i32 = 200;
 static HEIGHT: i32 = 100;
-
-struct Color {
-    r: f32,
-    g: f32,
-    b: f32
-}
-
-#[derive(Copy, Clone)]
-struct V3 {
-    x: f32,
-    y: f32,
-    z: f32
-}
-
-impl ops::Add<V3> for V3 {
-    type Output = V3;
-
-    fn add(self, rhs: V3) -> V3 {
-        V3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z
-        }
-    }
-}
-
-fn as_color(vec: V3) -> Color {
-    Color {
-        r: vec.x,
-        g: vec.y,
-        b: vec.z
-    }
-}
-
-impl ops::Mul<V3> for f32 {
-    type Output = V3;
-
-    fn mul(self, rhs: V3) -> V3 {
-        V3 {
-            x: self*rhs.x,
-            y: self*rhs.y,
-            z: self*rhs.z
-        }
-    }
-}
 
 struct Ray {
     origin: V3,
@@ -60,13 +17,6 @@ fn print_color(col: Color) -> String {
         to_component(col.r),
         to_component(col.g),
         to_component(col.b))
-}
-
-fn unit_vector(vec: V3) -> V3 {
-    let norm =  f32::sqrt(vec.x * vec.x
-        + vec.y * vec.y
-        + vec.z * vec.z);
-    (1.0/norm) * vec
 }
 
 fn color_for_ray(ray: Ray) -> Color {
