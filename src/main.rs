@@ -4,11 +4,15 @@
 
 mod v3color;
 mod shapes;
-use {v3color::*, shapes::*};
+mod camera;
+use {v3color::*, shapes::*, camera::*};
+
 use std::cmp;
+use rand::{prelude as random, Rng};
 
 static WIDTH: i32 = 200;
 static HEIGHT: i32 = 100;
+static ANTIALIAS_SAMPLES: i32 = 100;
 
 fn print_color(col: Color) -> String {
     let to_component = |c| (255.99 * c) as i32;
@@ -54,20 +58,23 @@ fn main() {
 
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
-    let lower_left_corner = V3 { x: -2.0, y: -1.0, z: -1.0 };
-    let origin = V3 { x: 0.0, y: 0.0, z: 0.0 };
-    let horizontal = V3 { x: 4.0, y: 0.0, z: 0.0 };
-    let vertical = V3 { x: 0.0, y: 2.0, z: 0.0 };
+    let camera = Camera::default();
 
+    let mut rng = random::thread_rng();
     for j in (0..HEIGHT).rev() {
         for i in 0..WIDTH {
-            let u = i as f32 / WIDTH as f32;
-            let v = j as f32 / HEIGHT as f32;
-            let ray = Ray {
-                origin,
-                direction: lower_left_corner + u*horizontal + v*vertical
-            };
-            println!("{}", print_color(color_for_ray(&objects, &ray)));
+            let mut col_vec = V3 { x: 0.0, y: 0.0, z: 0.0 };
+            for _ in 0..ANTIALIAS_SAMPLES {
+                let u = (i as f32 + rng.gen::<f32>()) / WIDTH as f32;
+                let v = (j as f32 + rng.gen::<f32>()) / HEIGHT as f32;
+                let ray = camera.get_ray(u, v);
+                let cur_col = color_for_ray(&objects, &ray);
+                col_vec.x += cur_col.r;
+                col_vec.y += cur_col.g;
+                col_vec.z += cur_col.b;
+            }
+            let col = (col_vec / ANTIALIAS_SAMPLES as f32).to_color();
+            println!("{}", print_color(col));
         }
     }
 }
