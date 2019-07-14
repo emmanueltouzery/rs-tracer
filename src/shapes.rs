@@ -29,9 +29,9 @@ pub struct Sphere {
 impl Shape for Sphere {
     fn hit(&self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
-        let a = dot(&ray.direction, &ray.direction);
-        let b = dot(&oc, &ray.direction);
-        let c = dot(&oc, &oc) - self.radius*self.radius;
+        let a = V3::dot(&ray.direction, &ray.direction);
+        let b = V3::dot(&oc, &ray.direction);
+        let c = V3::dot(&oc, &oc) - self.radius*self.radius;
         let discriminant = b*b - a*c;
 
         let get_hit_record = |solution| {
