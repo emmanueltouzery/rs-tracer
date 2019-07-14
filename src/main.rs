@@ -15,7 +15,7 @@ static HEIGHT: i32 = 100;
 static ANTIALIAS_SAMPLES: i32 = 100;
 
 fn print_color(col: Color) -> String {
-    let to_component = |c| (255.99 * c) as i32;
+    let to_component = |c| (255.99 * f32::sqrt(c)) as i32;
     format!("{} {} {}", 
         to_component(col.r),
         to_component(col.g),
@@ -30,10 +30,31 @@ fn closest_hit(objects: &[Box<Shape>], ray: &Ray, t_range: &std::ops::Range<f32>
         .min_by(|o1, o2| o1.t.partial_cmp(&o2.t).unwrap_or(cmp::Ordering::Equal))
 }
 
+fn random_in_unit_sphere() -> V3 {
+    let mut rng = random::thread_rng();
+    let mut p;
+    let unit = V3 { x: 1.0, y: 1.0, z: 1.0};
+    loop {
+        p = 2.0 * V3 { 
+            x: rng.gen::<f32>(),
+            y: rng.gen::<f32>(),
+            z: rng.gen::<f32>()
+        } - unit;
+        if p.squared_length() < 1.0 { break p; }
+    }
+}
+
 fn color_for_ray(objects: &[Box<Shape>], ray: &Ray) -> Color {
-    match closest_hit(objects, ray, &(0.0..std::f32::MAX)) {
+    match closest_hit(objects, ray, &(0.001..std::f32::MAX)) {
         Some(r) => {
-            (0.5*(r.normal + V3 { x: 1.0, y: 1.0, z: 1.0})).to_color()
+            let target = r.p + r.normal + random_in_unit_sphere();
+            let col = color_for_ray(objects,
+                &Ray { origin: r.p, direction: target - r.p });
+            Color {
+                r: col.r/2.0,
+                g: col.g/2.0,
+                b: col.b/2.0
+            }
         }
         None => {
             let unit_direction = ray.direction.unit();

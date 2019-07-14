@@ -61,6 +61,10 @@ impl V3 {
         self / norm
     }
 
+    pub fn squared_length(&self) -> f32 {
+        self.x*self.x + self.y*self.y + self.z*self.z
+    }
+
     pub fn dot(v1: &V3, v2: &V3) -> f32 {
         v1.x*v2.x + v1.y*v2.y + v1.z*v2.z
     }
