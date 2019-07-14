@@ -45,19 +45,21 @@ impl_op_ex!(/ |a: &V3, b: &f32| -> V3 {
     }
 });
 
-pub fn v3_to_color(vec: &V3) -> Color {
-    Color {
-        r: vec.x,
-        g: vec.y,
-        b: vec.z
+impl V3 {
+    pub fn to_color(&self) -> Color {
+        Color {
+            r: self.x,
+            g: self.y,
+            b: self.z
+        }
     }
-}
 
-pub fn unit_vector(vec: &V3) -> V3 {
-    let norm =  f32::sqrt(vec.x * vec.x
-        + vec.y * vec.y
-        + vec.z * vec.z);
-    (1.0/norm) * vec
+    pub fn unit(&self) -> V3 {
+        let norm =  f32::sqrt(self.x * self.x
+            + self.y * self.y
+            + self.z * self.z);
+        self / norm
+    }
 }
 
 pub fn dot(v1: &V3, v2: &V3) -> f32 {

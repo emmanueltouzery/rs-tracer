@@ -18,7 +18,7 @@ fn print_color(col: Color) -> String {
         to_component(col.b))
 }
 
-fn closest_hit(objects: &Vec<Box<Shape>>, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord> {
+fn closest_hit(objects: &[Box<Shape>], ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord> {
     objects
         .iter()
         .flat_map(|o| o.hit(ray, t_range))
@@ -26,16 +26,16 @@ fn closest_hit(objects: &Vec<Box<Shape>>, ray: &Ray, t_range: &std::ops::Range<f
         .min_by(|o1, o2| o1.t.partial_cmp(&o2.t).unwrap_or(cmp::Ordering::Equal))
 }
 
-fn color_for_ray(objects: &Vec<Box<Shape>>, ray: &Ray) -> Color {
+fn color_for_ray(objects: &[Box<Shape>], ray: &Ray) -> Color {
     match closest_hit(objects, ray, &(0.0..std::f32::MAX)) {
         Some(r) => {
-            v3_to_color(&(0.5*(r.normal + V3 { x: 1.0, y: 1.0, z: 1.0})))
+            (0.5*(r.normal + V3 { x: 1.0, y: 1.0, z: 1.0})).to_color()
         }
         None => {
-            let unit_direction = unit_vector(&ray.direction);
+            let unit_direction = ray.direction.unit();
             let t = 0.5 * (unit_direction.y + 1.0);
-            v3_to_color(&((1.0-t) * V3 { x: 1.0, y: 1.0, z: 1.0 }
-                + t*V3 { x: 0.5, y: 0.7, z: 1.0 }))
+            ((1.0-t) * V3 { x: 1.0, y: 1.0, z: 1.0 }
+                + t*V3 { x: 0.5, y: 0.7, z: 1.0 }).to_color()
         }
     }
  }

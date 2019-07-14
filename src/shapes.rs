@@ -5,8 +5,10 @@ pub struct Ray {
     pub direction: V3
 }
 
-pub fn point_at_parameter(ray: &Ray, t: f32) -> V3 {
-    ray.origin + ray.direction*t
+impl Ray {
+    pub fn point_at_parameter(&self, t: f32) -> V3 {
+        self.origin + self.direction*t
+    }
 }
 
 pub struct HitRecord {
@@ -33,7 +35,7 @@ impl Shape for Sphere {
         let discriminant = b*b - a*c;
 
         let get_hit_record = |solution| {
-            let point = point_at_parameter(ray, solution);
+            let point = ray.point_at_parameter(solution);
             Some(HitRecord {
                 t: solution,
                 p: point,
