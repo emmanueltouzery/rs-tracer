@@ -85,7 +85,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustracer"
+name = "rs-tracer"
 version = "0.1.0"
 dependencies = [
  "impl_ops 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",

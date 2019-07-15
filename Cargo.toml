@@ -1,5 +1,5 @@
 [package]
-name = "rustracer"
+name = "rs-tracer"
 version = "0.1.0"
 authors = ["Emmanuel Touzery <etouzery@gmail.com>"]
 edition = "2018"
