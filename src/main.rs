@@ -5,7 +5,8 @@
 mod v3color;
 mod shapes;
 mod camera;
-use {v3color::*, shapes::*, camera::*};
+mod material;
+use {v3color::*, shapes::*, camera::*, material::*};
 
 use std::cmp;
 use rand::{prelude as random, Rng};
@@ -13,6 +14,8 @@ use rand::{prelude as random, Rng};
 static WIDTH: i32 = 200;
 static HEIGHT: i32 = 100;
 static ANTIALIAS_SAMPLES: i32 = 100;
+
+static BLACK_V: V3 = V3 { x: 0.0, y: 0.0, z: 0.0};
 
 fn print_color(col: Color) -> String {
     let to_component = |c| (255.99 * f32::sqrt(c)) as i32;
@@ -22,7 +25,7 @@ fn print_color(col: Color) -> String {
         to_component(col.b))
 }
 
-fn closest_hit(objects: &[Box<Shape>], ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord> {
+fn closest_hit<'a>(objects: &'a [Box<Shape>], ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>> {
     objects
         .iter()
         .flat_map(|o| o.hit(ray, t_range))
@@ -30,37 +33,27 @@ fn closest_hit(objects: &[Box<Shape>], ray: &Ray, t_range: &std::ops::Range<f32>
         .min_by(|o1, o2| o1.t.partial_cmp(&o2.t).unwrap_or(cmp::Ordering::Equal))
 }
 
-fn random_in_unit_sphere() -> V3 {
-    let mut rng = random::thread_rng();
-    let mut p;
-    let unit = V3 { x: 1.0, y: 1.0, z: 1.0};
-    loop {
-        p = 2.0 * V3 { 
-            x: rng.gen::<f32>(),
-            y: rng.gen::<f32>(),
-            z: rng.gen::<f32>()
-        } - unit;
-        if p.squared_length() < 1.0 { break p; }
-    }
+fn color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> Color {
+    _color_for_ray(objects, ray, depth).to_color()
 }
 
-fn color_for_ray(objects: &[Box<Shape>], ray: &Ray) -> Color {
+fn _color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> V3 {
+    if depth >= 50 {
+        return BLACK_V;
+    }
     match closest_hit(objects, ray, &(0.001..std::f32::MAX)) {
         Some(r) => {
-            let target = r.p + r.normal + random_in_unit_sphere();
-            let col = color_for_ray(objects,
-                &Ray { origin: r.p, direction: target - r.p });
-            Color {
-                r: col.r/2.0,
-                g: col.g/2.0,
-                b: col.b/2.0
-            }
+            r.material.scatter(ray, &r)
+                .map_or_else(|| BLACK_V, |scatter_info| {
+                    scatter_info.attenuation
+                        * _color_for_ray(objects, &scatter_info.scattered, depth+1)
+                })
         }
         None => {
             let unit_direction = ray.direction.unit();
             let t = 0.5 * (unit_direction.y + 1.0);
             ((1.0-t) * V3 { x: 1.0, y: 1.0, z: 1.0 }
-                + t*V3 { x: 0.5, y: 0.7, z: 1.0 }).to_color()
+                + t*V3 { x: 0.5, y: 0.7, z: 1.0 })
         }
     }
  }
@@ -69,11 +62,23 @@ fn main() {
     let objects: Vec<Box<Shape>> = vec![
         Box::new(Sphere {
             center: V3 { x: 0.0, y: 0.0, z: -1.0 },
-            radius: 0.5
+            radius: 0.5,
+            material: Box::new(Lambertian { albedo: V3 { x: 0.8, y: 0.3, z: 0.3} })
         }),
         Box::new(Sphere {
             center: V3 { x: 0.0, y: -100.5, z: -1.0},
-            radius: 100.0
+            radius: 100.0,
+            material: Box::new(Lambertian { albedo: V3 { x: 0.8, y: 0.8, z: 0.0}})
+        }),
+        Box::new(Sphere {
+            center: V3 { x: 1.0, y: 0.0, z: -1.0 },
+            radius: 0.5,
+            material: Box::new(Metal { albedo: V3 { x: 0.8, y: 0.6, z: 0.2} })
+        }),
+        Box::new(Sphere {
+            center: V3 { x: -1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Box::new(Metal { albedo: V3 { x: 0.8, y: 0.8, z: 0.8}})
         })
     ];
 
@@ -89,7 +94,7 @@ fn main() {
                 let u = (i as f32 + rng.gen::<f32>()) / WIDTH as f32;
                 let v = (j as f32 + rng.gen::<f32>()) / HEIGHT as f32;
                 let ray = camera.get_ray(u, v);
-                let cur_col = color_for_ray(&objects, &ray);
+                let cur_col = color_for_ray(&objects, &ray, 0);
                 col_vec.x += cur_col.r;
                 col_vec.y += cur_col.g;
                 col_vec.z += cur_col.b;

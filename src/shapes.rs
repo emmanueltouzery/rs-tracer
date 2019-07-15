@@ -1,4 +1,4 @@
-use crate::v3color::*;
+use crate::{v3color::*, material::*};
 
 pub struct Ray {
     pub origin: V3,
@@ -11,23 +11,25 @@ impl Ray {
     }
 }
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub t: f32,
     pub p: V3,
-    pub normal: V3
+    pub normal: V3,
+    pub material: &'a Material
 }
 
 pub trait Shape {
-    fn hit(&self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord>;
+    fn hit<'a>(&'a self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>>;
 }
 
 pub struct Sphere {
     pub center: V3,
-    pub radius: f32
+    pub radius: f32,
+    pub material: Box<Material>
 }
 
 impl Shape for Sphere {
-    fn hit(&self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord> {
+    fn hit<'a>(&'a self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>> {
         let oc = ray.origin - self.center;
         let a = V3::dot(&ray.direction, &ray.direction);
         let b = V3::dot(&oc, &ray.direction);
@@ -39,7 +41,8 @@ impl Shape for Sphere {
             Some(HitRecord {
                 t: solution,
                 p: point,
-                normal: (point - self.center) / self.radius
+                normal: (point - self.center) / self.radius,
+                material: &*self.material
             })
         };
 

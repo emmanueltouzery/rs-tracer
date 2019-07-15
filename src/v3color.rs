@@ -29,6 +29,14 @@ impl_op_ex!(- |a: &V3, b: &V3| -> V3 {
     }
 });
 
+impl_op_ex!(* |a: &V3, b: &V3| -> V3 {
+    V3 {
+        x: a.x * b.x,
+        y: a.y * b.y,
+        z: a.z * b.z
+    }
+});
+
 impl_op_ex_commutative!(* |a: &f32, b: &V3| -> V3 {
     V3 {
         x: a*b.x,
@@ -67,5 +75,9 @@ impl V3 {
 
     pub fn dot(v1: &V3, v2: &V3) -> f32 {
         v1.x*v2.x + v1.y*v2.y + v1.z*v2.z
+    }
+
+    pub fn reflect(v: &V3, n: &V3) -> V3 {
+        v - 2.0 * V3::dot(v, n) * n
     }
 }
