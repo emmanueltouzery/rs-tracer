@@ -71,10 +71,7 @@ impl V3 {
     }
 
     pub fn unit(&self) -> V3 {
-        let norm =  f32::sqrt(self.x * self.x
-            + self.y * self.y
-            + self.z * self.z);
-        self / norm
+        self / self.squared_length()
     }
 
     pub fn squared_length(&self) -> f32 {
