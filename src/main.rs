@@ -75,12 +75,17 @@ fn main() {
             radius: 0.5,
             material: Box::new(Metal { 
                 albedo: Color { r: 0.8, g: 0.6, b: 0.2}, 
-                fuzz: 0.0 
+                fuzz: 0.3 
             })
         }),
         Box::new(Sphere {
             center: V3 { x: -1.0, y: 0.0, z: -1.0},
             radius: 0.5,
+            material: Box::new(Dielectric { ref_idx: 1.5 })
+        }),
+        Box::new(Sphere {
+            center: V3 { x: -1.0, y: 0.0, z: -1.0},
+            radius: -0.45,
             material: Box::new(Dielectric { ref_idx: 1.5 })
         })
     ];
