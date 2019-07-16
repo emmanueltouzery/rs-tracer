@@ -26,7 +26,7 @@ fn random_in_unit_sphere() -> V3 {
 }
 
 pub struct Lambertian {
-    pub albedo: V3
+    pub albedo: Color
 }
 
 impl Material for Lambertian {
@@ -37,13 +37,13 @@ impl Material for Lambertian {
                 origin: hit_record.p, 
                 direction: target - hit_record.p
             },
-            attenuation: self.albedo
+            attenuation: V3 { x: self.albedo.r, y: self.albedo.g, z: self.albedo.b }
         })
     }
 }
 
 pub struct Metal {
-    pub albedo: V3
+    pub albedo: Color
 }
 
 impl Material for Metal {
@@ -56,7 +56,7 @@ impl Material for Metal {
                 origin: hit_record.p,
                 direction: reflected
             },
-            attenuation: self.albedo
+            attenuation: V3 { x: self.albedo.r, y: self.albedo.g, z: self.albedo.b }
         }).filter(|v| V3::dot(&v.scattered.direction, &hit_record.normal) > 0.0)
     }
 }

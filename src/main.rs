@@ -63,22 +63,22 @@ fn main() {
         Box::new(Sphere {
             center: V3 { x: 0.0, y: 0.0, z: -1.0 },
             radius: 0.5,
-            material: Box::new(Lambertian { albedo: V3 { x: 0.8, y: 0.3, z: 0.3} })
+            material: Box::new(Lambertian { albedo: Color { r: 0.8, g: 0.3, b: 0.3} })
         }),
         Box::new(Sphere {
             center: V3 { x: 0.0, y: -100.5, z: -1.0},
             radius: 100.0,
-            material: Box::new(Lambertian { albedo: V3 { x: 0.8, y: 0.8, z: 0.0}})
+            material: Box::new(Lambertian { albedo: Color { r: 0.8, g: 0.8, b: 0.0}})
         }),
         Box::new(Sphere {
             center: V3 { x: 1.0, y: 0.0, z: -1.0 },
             radius: 0.5,
-            material: Box::new(Metal { albedo: V3 { x: 0.8, y: 0.6, z: 0.2} })
+            material: Box::new(Metal { albedo: Color { r: 0.8, g: 0.6, b: 0.2} })
         }),
         Box::new(Sphere {
             center: V3 { x: -1.0, y: 0.0, z: -1.0},
             radius: 0.5,
-            material: Box::new(Metal { albedo: V3 { x: 0.8, y: 0.8, z: 0.8}})
+            material: Box::new(Metal { albedo: Color { r: 0.8, g: 0.8, b: 0.8}})
         })
     ];
 
