@@ -9,7 +9,6 @@ mod material;
 use {v3color::*, shapes::*, camera::*, material::*};
 
 use std::cmp;
-use std::f32::consts::PI;
 use rand::{prelude as random, Rng};
 
 static WIDTH: i32 = 200;
@@ -60,23 +59,44 @@ fn _color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> V3 {
  }
 
 fn main() {
-    let r = f32::cos(PI / 4.0);
     let objects: Vec<Box<Shape>> = vec![
-        Box::new(Sphere {
-            center: V3 { x: -r, y: 0.0, z: -1.0 },
-            radius: r,
-            material: Box::new(Lambertian { albedo: Color { r: 0.0, g: 0.0, b: 1.0} })
+         Box::new(Sphere {
+            center: V3 { x: 0.0, y: 0.0, z: -1.0 },
+            radius: 0.5,
+            material: Box::new(Lambertian { albedo: Color { r: 0.1, g: 0.2, b: 0.5} })
         }),
         Box::new(Sphere {
-            center: V3 { x: r, y: 0.0, z: -1.0},
-            radius: r,
-            material: Box::new(Lambertian { albedo: Color { r: 1.0, g: 0.0, b: 0.0}})
-        })
+            center: V3 { x: 0.0, y: -100.5, z: -1.0},
+            radius: 100.0,
+            material: Box::new(Lambertian { albedo: Color { r: 0.8, g: 0.8, b: 0.0}})
+        }),
+        Box::new(Sphere {
+            center: V3 { x: 1.0, y: 0.0, z: -1.0 },
+            radius: 0.5,
+            material: Box::new(Metal { 
+                albedo: Color { r: 0.8, g: 0.6, b: 0.2}, 
+                fuzz: 0.3 
+            })
+        }),
+        Box::new(Sphere {
+            center: V3 { x: -1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Box::new(Dielectric { ref_idx: 1.5 })
+        }),
+        Box::new(Sphere {
+            center: V3 { x: -1.0, y: 0.0, z: -1.0},
+            radius: -0.45,
+            material: Box::new(Dielectric { ref_idx: 1.5 })
+        }) 
     ];
 
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
-    let camera = Camera::new(90.0, WIDTH as f32 / HEIGHT as f32);
+    let camera = Camera::new(
+        &V3 {x: -2.0, y: 2.0, z: 1.0},
+        &V3 {x: 0.0, y: 0.0, z: -1.0},
+        &V3 {x: 0.0, y: 1.0, z: 0.0},
+        20.0, WIDTH as f32 / HEIGHT as f32);
 
     let mut rng = random::thread_rng();
     for j in (0..HEIGHT).rev() {

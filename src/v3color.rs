@@ -6,7 +6,7 @@ pub struct Color {
     pub b: f32
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct V3 {
     pub x: f32,
     pub y: f32,
@@ -84,6 +84,14 @@ impl V3 {
 
     pub fn dot(v1: &V3, v2: &V3) -> f32 {
         v1.x*v2.x + v1.y*v2.y + v1.z*v2.z
+    }
+
+    pub fn cross(v1: &V3, v2: &V3) -> V3 {
+        return V3 {
+            x: v1.y*v2.z - v1.z*v2.y,
+            y: v1.z*v2.x - v1.x*v2.z,
+            z: v1.x*v2.y - v1.y*v2.x
+        }
     }
 
     pub fn reflect(v: &V3, n: &V3) -> V3 {
