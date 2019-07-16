@@ -1,4 +1,5 @@
 use crate::{v3color::*, shapes::*};
+use std::f32::consts::PI;
 
 pub struct Camera {
     pub lower_left_corner: V3,
@@ -8,12 +9,15 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn default() -> Camera {
+    pub fn new(vert_fov_deg: f32, aspect: f32) -> Camera {
+        let theta = vert_fov_deg*PI/180.0;
+        let half_height = f32::tan(theta/2.0);
+        let half_width = aspect * half_height;
         Camera {
-            lower_left_corner: V3 { x: -2.0, y: -1.0, z: -1.0 },
-            origin: V3 { x: 0.0, y: 0.0, z: 0.0 },
-            horizontal: V3 { x: 4.0, y: 0.0, z: 0.0 },
-            vertical: V3 { x: 0.0, y: 2.0, z: 0.0 }
+            lower_left_corner: V3 { x: -half_width, y: -half_height, z: -1.0 },
+            horizontal: V3 { x: 2.0*half_width, y: 0.0, z: 0.0 },
+            vertical: V3 { x: 0.0, y: 2.0*half_height, z: 0.0 },
+            origin: V3 { x: 0.0, y: 0.0, z: 0.0 }
         }
     }
 
@@ -21,7 +25,7 @@ impl Camera {
         Ray {
             origin: self.origin,
             direction: self.lower_left_corner 
-                + u*self.horizontal + v*self.vertical
+                + u*self.horizontal + v*self.vertical - self.origin
         }
     }
 }
