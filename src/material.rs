@@ -61,3 +61,46 @@ impl Material for Metal {
         }).filter(|v| V3::dot(&v.scattered.direction, &hit_record.normal) > 0.0)
     }
 }
+
+pub struct Dielectric {
+    pub ref_idx: f32
+}
+
+fn refract(in_direction: &V3, normal: &V3, ni_over_nt: f32) -> Option<V3> {
+    let u_indir = in_direction.unit();
+    let dt = V3::dot(&u_indir, &normal);
+    let discriminant = 1.0 - ni_over_nt*ni_over_nt*(1.0-dt*dt);
+    if discriminant > 0.0 {
+        Some(ni_over_nt*(u_indir - normal*dt) - normal*f32::sqrt(discriminant))
+    } else {
+        None
+    }
+}
+
+impl Material for Dielectric {
+    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<MaterialScatterInfo> {
+        let reflected = V3::reflect(
+            &ray_in.direction.unit(), 
+            &hit_record.normal);
+        let (outward_normal, ni_over_nt) = 
+            if V3::dot(&ray_in.direction, &hit_record.normal) > 0.0 {
+                (-hit_record.normal, self.ref_idx)
+            } else {
+                (hit_record.normal, 1.0 / self.ref_idx)
+            };
+        refract(&ray_in.direction, &outward_normal, ni_over_nt)
+            .map(|refracted| {
+                MaterialScatterInfo {
+                    scattered: Ray {
+                        origin: hit_record.p,
+                        direction: refracted
+                    },
+                    attenuation: V3 { x: 1.0, y: 1.0, z: 1.0 }
+                }
+            })
+            .or_else(||
+                // scattered = Ray { origin: hit_record.p, direction: reflected}
+                None
+            )
+    }
+}

@@ -21,6 +21,14 @@ impl_op_ex!(+ |a: &V3, b: &V3| -> V3 {
     }
 });
 
+impl_op_ex!(- |a: &V3| -> V3 {
+    V3 {
+        x: -a.x,
+        y: -a.y,
+        z: -a.z
+    }
+});
+
 impl_op_ex!(- |a: &V3, b: &V3| -> V3 {
     V3 {
         x: a.x - b.x,

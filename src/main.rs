@@ -63,7 +63,7 @@ fn main() {
         Box::new(Sphere {
             center: V3 { x: 0.0, y: 0.0, z: -1.0 },
             radius: 0.5,
-            material: Box::new(Lambertian { albedo: Color { r: 0.8, g: 0.3, b: 0.3} })
+            material: Box::new(Lambertian { albedo: Color { r: 0.1, g: 0.2, b: 0.5} })
         }),
         Box::new(Sphere {
             center: V3 { x: 0.0, y: -100.5, z: -1.0},
@@ -75,16 +75,13 @@ fn main() {
             radius: 0.5,
             material: Box::new(Metal { 
                 albedo: Color { r: 0.8, g: 0.6, b: 0.2}, 
-                fuzz: 1.0 
+                fuzz: 0.0 
             })
         }),
         Box::new(Sphere {
             center: V3 { x: -1.0, y: 0.0, z: -1.0},
             radius: 0.5,
-            material: Box::new(Metal { 
-                albedo: Color { r: 0.8, g: 0.8, b: 0.8},
-                fuzz: 0.3 
-            })
+            material: Box::new(Dielectric { ref_idx: 1.5 })
         })
     ];
 
