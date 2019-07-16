@@ -43,7 +43,8 @@ impl Material for Lambertian {
 }
 
 pub struct Metal {
-    pub albedo: Color
+    pub albedo: Color,
+    pub fuzz: f32 // todo new ctor to clamp to 1.0 max?
 }
 
 impl Material for Metal {
@@ -54,7 +55,7 @@ impl Material for Metal {
         Some(MaterialScatterInfo {
             scattered: Ray {
                 origin: hit_record.p,
-                direction: reflected
+                direction: reflected + self.fuzz*random_in_unit_sphere()
             },
             attenuation: V3 { x: self.albedo.r, y: self.albedo.g, z: self.albedo.b }
         }).filter(|v| V3::dot(&v.scattered.direction, &hit_record.normal) > 0.0)
