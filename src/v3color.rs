@@ -71,7 +71,7 @@ impl V3 {
     }
 
     pub fn unit(&self) -> V3 {
-        self / self.squared_length()
+        self / self.length()
     }
 
     pub fn squared_length(&self) -> f32 {
