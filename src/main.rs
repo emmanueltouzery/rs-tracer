@@ -92,11 +92,16 @@ fn main() {
 
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
+    let aperture = 2.0;
+    let look_from = V3 {x: 3.0, y: 3.0, z: 2.0};
+    let look_at = V3 {x: 0.0, y: 0.0, z: -1.0};
+    let dist_to_focus = (look_from - look_at).length();
     let camera = Camera::new(
-        &V3 {x: -2.0, y: 2.0, z: 1.0},
-        &V3 {x: 0.0, y: 0.0, z: -1.0},
+        &look_from,
+        &look_at,
         &V3 {x: 0.0, y: 1.0, z: 0.0},
-        20.0, WIDTH as f32 / HEIGHT as f32);
+        20.0, WIDTH as f32 / HEIGHT as f32,
+        aperture, dist_to_focus);
 
     let mut rng = random::thread_rng();
     for j in (0..HEIGHT).rev() {
