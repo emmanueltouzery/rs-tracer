@@ -11,8 +11,8 @@ use {v3color::*, shapes::*, camera::*, material::*};
 use std::cmp;
 use rand::{prelude as random, Rng};
 
-static WIDTH: i32 = 200;
-static HEIGHT: i32 = 100;
+static WIDTH: i32 = 800;
+static HEIGHT: i32 = 400;
 static ANTIALIAS_SAMPLES: i32 = 100;
 
 static BLACK_V: V3 = V3 { x: 0.0, y: 0.0, z: 0.0};
@@ -56,46 +56,97 @@ fn _color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> V3 {
                 + t*V3 { x: 0.5, y: 0.7, z: 1.0 })
         }
     }
- }
+}
+
+fn scene() -> Vec<Box<Shape>> {
+    let mut rng = random::thread_rng();
+    let mut objects: Vec<Box<Shape>> = vec![
+        Box::new(Sphere {
+            center: V3 { x: 0.0, y: -1000.0, z: 0.0},
+            radius: 1000.0,
+            material: Box::new(Lambertian { albedo: Color { r: 0.5, g: 0.5, b: 0.5}})
+        })
+    ];
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = rng.gen::<f32>();
+            let center = V3 {
+                x: a as f32 + 0.9*rng.gen::<f32>(),
+                y: 0.2,
+                z: b as f32 + 0.9*rng.gen::<f32>()
+            };
+            if (center - V3 {x: 4.0, y: 0.2, z: 0.0}).length() > 0.9 {
+                if choose_mat < 0.7 { // diffuse
+                    objects.push(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Box::new(Lambertian {
+                            albedo: Color {
+                                r: rng.gen::<f32>()*rng.gen::<f32>(),
+                                g: rng.gen::<f32>()*rng.gen::<f32>(),
+                                b: rng.gen::<f32>()*rng.gen::<f32>()
+                            }
+                        })
+                    }));
+                } else if choose_mat < 0.85 { // metal
+                    objects.push(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Box::new(Metal {
+                            albedo: Color {
+                                r: 0.5 * (1.0+rng.gen::<f32>()),
+                                g: 0.5 * (1.0+rng.gen::<f32>()),
+                                b: 0.5 * (1.0+rng.gen::<f32>()),
+                            },
+                            fuzz: 0.5*rng.gen::<f32>()
+                        })
+                    }))
+                } else { // glass
+                    objects.push(Box::new(Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Box::new(Dielectric {
+                            ref_idx: 1.5
+                        })
+                    }))
+                }
+            }
+        }
+    }
+    let extra: Vec<Box<Shape>> = vec![
+         Box::new(Sphere {
+            center: V3 { x: 0.0, y: 1.0, z: 0.0 },
+            radius: 1.0,
+            material: Box::new(Dielectric { ref_idx: 1.5 })
+        }),
+        Box::new(Sphere {
+            center: V3 { x: -4.0, y: 1.0, z: 0.0},
+            radius: 1.0,
+            material: Box::new(Lambertian { albedo: Color { r: 0.4, g: 0.2, b: 0.1}})
+        }),
+        Box::new(Sphere {
+            center: V3 { x: 4.0, y: 1.0, z: 0.0 },
+            radius: 1.0,
+            material: Box::new(Metal { 
+                albedo: Color { r: 0.7, g: 0.6, b: 0.5}, 
+                fuzz: 0.0
+            })
+        })
+    ];
+    objects.extend(extra);
+    objects
+}
 
 fn main() {
-    let objects: Vec<Box<Shape>> = vec![
-         Box::new(Sphere {
-            center: V3 { x: 0.0, y: 0.0, z: -1.0 },
-            radius: 0.5,
-            material: Box::new(Lambertian { albedo: Color { r: 0.1, g: 0.2, b: 0.5} })
-        }),
-        Box::new(Sphere {
-            center: V3 { x: 0.0, y: -100.5, z: -1.0},
-            radius: 100.0,
-            material: Box::new(Lambertian { albedo: Color { r: 0.8, g: 0.8, b: 0.0}})
-        }),
-        Box::new(Sphere {
-            center: V3 { x: 1.0, y: 0.0, z: -1.0 },
-            radius: 0.5,
-            material: Box::new(Metal { 
-                albedo: Color { r: 0.8, g: 0.6, b: 0.2}, 
-                fuzz: 0.3 
-            })
-        }),
-        Box::new(Sphere {
-            center: V3 { x: -1.0, y: 0.0, z: -1.0},
-            radius: 0.5,
-            material: Box::new(Dielectric { ref_idx: 1.5 })
-        }),
-        Box::new(Sphere {
-            center: V3 { x: -1.0, y: 0.0, z: -1.0},
-            radius: -0.45,
-            material: Box::new(Dielectric { ref_idx: 1.5 })
-        }) 
-    ];
-
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
-    let aperture = 2.0;
-    let look_from = V3 {x: 3.0, y: 3.0, z: 2.0};
-    let look_at = V3 {x: 0.0, y: 0.0, z: -1.0};
-    let dist_to_focus = (look_from - look_at).length();
+    let objects = scene();
+
+    let aperture = 0.05;
+    let look_from = V3 {x: 10.0, y: 1.8, z: 2.6};
+    // let look_from = V3 {x: 10.0, y: 2.8, z: 10.0};
+    let look_at = V3 {x: 0.0, y: 0.5, z: 0.0};
+    let dist_to_focus = (look_from - V3 {x: 4.0, y: 1.0, z: 0.0}).length();
     let camera = Camera::new(
         &look_from,
         &look_at,
