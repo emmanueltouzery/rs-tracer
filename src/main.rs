@@ -155,7 +155,7 @@ fn main() {
         20.0, WIDTH as f32 / HEIGHT as f32,
         aperture, dist_to_focus);
 
-    let row_cols: Vec<_> = (0..HEIGHT).rev().collect::<Vec<_>>().par_iter().map(|&j| {
+    let row_cols = (0..HEIGHT).rev().collect::<Vec<_>>().par_iter().map(|&j| {
         let mut rng = random::thread_rng();
         (0..WIDTH).map(|i| {
             let mut col_vec = V3 { x: 0.0, y: 0.0, z: 0.0 };
