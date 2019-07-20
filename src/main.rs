@@ -1,6 +1,7 @@
 // based on the "Ray Tracing in a Weekend" book
 
 #[macro_use] extern crate impl_ops;
+extern crate rayon;
 
 mod v3color;
 mod shapes;
@@ -10,6 +11,7 @@ use {v3color::*, shapes::*, camera::*, material::*};
 
 use std::cmp;
 use rand::{prelude as random, Rng};
+use rayon::prelude::*;
 
 static WIDTH: i32 = 800;
 static HEIGHT: i32 = 400;
@@ -144,7 +146,6 @@ fn main() {
 
     let aperture = 0.05;
     let look_from = V3 {x: 10.0, y: 1.8, z: 2.6};
-    // let look_from = V3 {x: 10.0, y: 2.8, z: 10.0};
     let look_at = V3 {x: 0.0, y: 0.5, z: 0.0};
     let dist_to_focus = (look_from - V3 {x: 4.0, y: 1.0, z: 0.0}).length();
     let camera = Camera::new(
@@ -154,9 +155,9 @@ fn main() {
         20.0, WIDTH as f32 / HEIGHT as f32,
         aperture, dist_to_focus);
 
-    let mut rng = random::thread_rng();
-    for j in (0..HEIGHT).rev() {
-        for i in 0..WIDTH {
+    let row_cols: Vec<_> = (0..HEIGHT).rev().collect::<Vec<_>>().par_iter().map(|&j| {
+        let mut rng = random::thread_rng();
+        (0..WIDTH).map(|i| {
             let mut col_vec = V3 { x: 0.0, y: 0.0, z: 0.0 };
             for _ in 0..ANTIALIAS_SAMPLES {
                 let u = (i as f32 + rng.gen::<f32>()) / WIDTH as f32;
@@ -167,8 +168,12 @@ fn main() {
                 col_vec.y += cur_col.g;
                 col_vec.z += cur_col.b;
             }
-            let col = (col_vec / ANTIALIAS_SAMPLES as f32).to_color();
-            println!("{}", print_color(col));
+            (col_vec / ANTIALIAS_SAMPLES as f32).to_color()
+        }).collect::<Vec<_>>()
+    }).collect::<Vec<_>>();
+    for row_col in row_cols {
+        for pixel in row_col {
+            println!("{}", print_color(pixel));
         }
     }
 }

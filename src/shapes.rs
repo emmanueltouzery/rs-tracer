@@ -18,7 +18,7 @@ pub struct HitRecord<'a> {
     pub material: &'a Material
 }
 
-pub trait Shape {
+pub trait Shape: Sync {
     fn hit<'a>(&'a self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>>;
 }
 
