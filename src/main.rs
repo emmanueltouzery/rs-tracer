@@ -10,6 +10,7 @@ mod material;
 use {v3color::*, shapes::*, camera::*, material::*};
 
 use std::cmp;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use rand::{prelude as random, Rng};
 use rayon::prelude::*;
 
@@ -161,9 +162,12 @@ fn main() {
         time2: 1.0
     });
 
+    let rendered_rows = AtomicUsize::new(0);
+
+    eprint!("Rendered {:3}%", 0);
     let row_cols = (0..HEIGHT).rev().collect::<Vec<_>>().par_iter().map(|&j| {
         let mut rng = random::thread_rng();
-        (0..WIDTH).map(|i| {
+        let row_cols = (0..WIDTH).map(|i| {
             let mut col_vec = V3 { x: 0.0, y: 0.0, z: 0.0 };
             for _ in 0..ANTIALIAS_SAMPLES {
                 let u = (i as f32 + rng.gen::<f32>()) / WIDTH as f32;
@@ -175,11 +179,17 @@ fn main() {
                 col_vec.z += cur_col.b;
             }
             (col_vec / ANTIALIAS_SAMPLES as f32).to_color()
-        }).collect::<Vec<_>>()
+        }).collect::<Vec<_>>();
+        let rendered = rendered_rows.fetch_add(1, Ordering::SeqCst)+1;
+        if rendered % 10 == 0 {
+            eprint!("\rRendered {:3}%", (rendered as i32) * 100 / HEIGHT);
+        }
+        row_cols
     }).collect::<Vec<_>>();
     for row_col in row_cols {
         for pixel in row_col {
             println!("{}", print_color(pixel));
         }
     }
+    eprint!("\r");
 }
