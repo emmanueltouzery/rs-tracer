@@ -79,8 +79,11 @@ fn scene() -> Vec<Box<Shape>> {
             };
             if (center - V3 {x: 4.0, y: 0.2, z: 0.0}).length() > 0.9 {
                 if choose_mat < 0.7 { // diffuse
-                    objects.push(Box::new(Sphere {
-                        center,
+                    objects.push(Box::new(MovingSphere {
+                        center0: center,
+                        center1: center+ V3 {x: 0.0, y: 0.5*rng.gen::<f32>(), z: 0.0},
+                        time0: 0.0,
+                        time1: 1.0,
                         radius: 0.2,
                         material: Box::new(Lambertian {
                             albedo: Color {
@@ -144,16 +147,19 @@ fn main() {
 
     let objects = scene();
 
-    let aperture = 0.05;
     let look_from = V3 {x: 10.0, y: 1.8, z: 2.6};
     let look_at = V3 {x: 0.0, y: 0.5, z: 0.0};
-    let dist_to_focus = (look_from - V3 {x: 4.0, y: 1.0, z: 0.0}).length();
-    let camera = Camera::new(
-        &look_from,
-        &look_at,
-        &V3 {x: 0.0, y: 1.0, z: 0.0},
-        20.0, WIDTH as f32 / HEIGHT as f32,
-        aperture, dist_to_focus);
+    let camera = Camera::new(CameraParams {
+        look_from: &look_from,
+        look_at: &look_at,
+        vup: &V3 {x: 0.0, y: 1.0, z: 0.0},
+        focus_dist: (look_from - V3 {x: 4.0, y: 1.0, z: 0.0}).length(),
+        aperture: 0.05,
+        aspect: WIDTH as f32 / HEIGHT as f32,
+        vert_fov_deg: 20.0,
+        time1: 0.0,
+        time2: 1.0
+    });
 
     let row_cols = (0..HEIGHT).rev().collect::<Vec<_>>().par_iter().map(|&j| {
         let mut rng = random::thread_rng();

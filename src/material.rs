@@ -35,7 +35,8 @@ impl Material for Lambertian {
         Some(MaterialScatterInfo {
             scattered: Ray {
                 origin: hit_record.p, 
-                direction: target - hit_record.p
+                direction: target - hit_record.p,
+                time: _ray_in.time
             },
             attenuation: V3 { x: self.albedo.r, y: self.albedo.g, z: self.albedo.b }
         })
@@ -55,7 +56,8 @@ impl Material for Metal {
         Some(MaterialScatterInfo {
             scattered: Ray {
                 origin: hit_record.p,
-                direction: reflected + self.fuzz*random_in_unit_sphere()
+                direction: reflected + self.fuzz*random_in_unit_sphere(),
+                time: ray_in.time
             },
             attenuation: V3 { x: self.albedo.r, y: self.albedo.g, z: self.albedo.b }
         }).filter(|v| V3::dot(&v.scattered.direction, &hit_record.normal) > 0.0)
@@ -112,7 +114,8 @@ impl Material for Dielectric {
                 origin: hit_record.p,
                 direction:
                     refract(&ray_in.direction, &outward_normal, ni_over_nt)
-                        .map_or_else(reflected, refract_direction_fn)
+                        .map_or_else(reflected, refract_direction_fn),
+                time: ray_in.time
             },
             attenuation: V3 { x: 1.0, y: 1.0, z: 1.0 }
         })
