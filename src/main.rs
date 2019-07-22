@@ -165,6 +165,7 @@ fn main() {
     let rendered_rows = AtomicUsize::new(0);
 
     eprint!("Rendered {:3}%", 0);
+    // use par_iter to render rows in a multithread manner using the rayon library.
     let row_cols = (0..HEIGHT).rev().collect::<Vec<_>>().par_iter().map(|&j| {
         let mut rng = random::thread_rng();
         let row_cols = (0..WIDTH).map(|i| {

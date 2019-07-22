@@ -37,8 +37,8 @@ pub struct CameraParams<'a> {
     pub aspect: f32,
     pub aperture: f32,
     pub focus_dist: f32,
-    pub time1: f32,
-    pub time2: f32
+    pub time1: f32, // shutter open time
+    pub time2: f32  // shutter close time
 }
 
 impl Camera {
