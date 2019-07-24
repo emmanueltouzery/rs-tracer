@@ -1,4 +1,4 @@
-use crate::{v3color::*, material::*};
+use crate::{v3color::*, material::*, bvh::*};
 
 pub struct Ray {
     pub origin: V3,
@@ -12,6 +12,7 @@ impl Ray {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct HitRecord<'a> {
     pub t: f32,
     pub p: V3,
@@ -21,6 +22,11 @@ pub struct HitRecord<'a> {
 
 pub trait Shape: Sync {
     fn hit<'a>(&'a self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>>;
+
+    /// at some point we should return an option because not
+    /// all primitives have bounding boxes (eg infinite planes)
+    /// but for now we don't implement or handle these so...
+    fn bounding_box(&self, t_range: &std::ops::Range<f32>) -> Aabb;
 }
 
 fn sphere_hit<'a>(ray: &Ray, sphere_center: &V3, sphere_radius: f32,
@@ -55,6 +61,13 @@ fn sphere_hit<'a>(ray: &Ray, sphere_center: &V3, sphere_radius: f32,
     None
 }
 
+fn sphere_bounding_box(center: &V3, radius: f32) -> Aabb {
+    Aabb {
+        min: center - V3 { x: radius, y: radius, z: radius },
+        max: center + V3 { x: radius, y: radius, z: radius }
+    }
+}
+
 pub struct Sphere {
     pub center: V3,
     pub radius: f32,
@@ -64,6 +77,10 @@ pub struct Sphere {
 impl Shape for Sphere {
     fn hit<'a>(&'a self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>> {
         sphere_hit(ray, &self.center, self.radius, &*self.material, t_range)
+    }
+
+    fn bounding_box(&self, _t_range: &std::ops::Range<f32>) -> Aabb {
+        sphere_bounding_box(&self.center, self.radius)
     }
 }
 
@@ -76,9 +93,18 @@ pub struct MovingSphere {
     pub material: Box<Material>
 }
 
+fn moving_sphere_center_at_time(ms: &MovingSphere, time: f32) -> V3 {
+    ms.center0 + ((time - ms.time0) / (ms.time1 - ms.time0)) * (ms.center1 - ms.center0)
+}
+
 impl Shape for MovingSphere {
     fn hit<'a>(&'a self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>> {
-        let center = self.center0 + ((ray.time - self.time0) / (self.time1 - self.time0)) * (self.center1 - self.center0);
+        let center = moving_sphere_center_at_time(&self, ray.time);
         sphere_hit(ray, &center, self.radius, &*self.material, t_range)
+    }
+
+    fn bounding_box(&self, t_range: &std::ops::Range<f32>) -> Aabb {
+        sphere_bounding_box(&moving_sphere_center_at_time(&self, t_range.start), self.radius)
+            .union(&sphere_bounding_box(&moving_sphere_center_at_time(&self, t_range.end), self.radius))
     }
 }

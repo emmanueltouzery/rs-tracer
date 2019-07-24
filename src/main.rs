@@ -7,9 +7,9 @@ mod v3color;
 mod shapes;
 mod camera;
 mod material;
+mod bvh;
 use {v3color::*, shapes::*, camera::*, material::*};
 
-use std::cmp;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use rand::{prelude as random, Rng};
 use rayon::prelude::*;
@@ -32,8 +32,7 @@ fn closest_hit<'a>(objects: &'a [Box<Shape>], ray: &Ray, t_range: &std::ops::Ran
     objects
         .iter()
         .flat_map(|o| o.hit(ray, t_range))
-        // https://www.reddit.com/r/rust/comments/29kia3/no_ord_for_f32/cilrzik/
-        .min_by(|o1, o2| o1.t.partial_cmp(&o2.t).unwrap_or(cmp::Ordering::Equal))
+        .min_by(|o1, o2| f32__cmp(o1.t, o2.t))
 }
 
 fn color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> Color {
