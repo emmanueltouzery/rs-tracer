@@ -8,7 +8,7 @@ mod shapes;
 mod camera;
 mod material;
 mod bvh;
-use {v3color::*, shapes::*, camera::*, material::*};
+use {v3color::*, shapes::*, camera::*, material::*, bvh::*};
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use rand::{prelude as random, Rng};
@@ -145,7 +145,7 @@ fn scene() -> Vec<Box<Shape>> {
 fn main() {
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
-    let objects = scene();
+    let objects = vec![BvhNode::compute_shapes_bvh(scene(), &(0.001..std::f32::MAX))];
 
     let look_from = V3 {x: 10.0, y: 1.8, z: 2.6};
     let look_at = V3 {x: 0.0, y: 0.5, z: 0.0};

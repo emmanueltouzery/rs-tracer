@@ -66,35 +66,6 @@ pub struct BvhNode {
     pub bbox: Aabb
 }
 
-impl BvhNode {
-    fn new(shapes: &mut [Box<Shape>], t_range: &std::ops::Range<f32>) -> BvhNode {
-        let getter = match random::thread_rng().gen_range(0,3) {
-            0 => V3::get_x,
-            1 => V3::get_y,
-            _ => V3::get_z
-        };
-        shapes.sort_by(|a, b|
-            f32__cmp(
-                getter(&a.bounding_box(t_range).min),
-                getter(&b.bounding_box(t_range).min)));
-        let (left, right) = match shapes.len() {
-            1 => (shapes.first().unwrap(), shapes.first().unwrap()),
-            2 => (shapes.first().unwrap(), shapes.get(1).unwrap()),
-            _ => {
-                let (l, r) = shapes.split_at_mut(shapes.len()/2);
-                (&Box::new(BvhNode::new(l, t_range)),
-                    &Box::new(BvhNode::new(r, t_range)))
-            }
-        };
-        BvhNode {
-            left: *left,
-            right: *right,
-            bbox: left.bounding_box(t_range)
-                .union(&right.bounding_box(t_range))
-        }
-    }
-}
-
 impl Shape for BvhNode {
     fn hit<'a>(&'a self, ray: &Ray, t_range: &std::ops::Range<f32>) -> Option<HitRecord<'a>> {
         if !self.bbox.hit(&ray, t_range) {
@@ -113,5 +84,41 @@ impl Shape for BvhNode {
 
     fn bounding_box(&self, _t_range: &std::ops::Range<f32>) -> Aabb {
         Aabb { min: self.bbox.min, max: self.bbox.max }
+    }
+}
+
+impl BvhNode {
+    pub fn compute_shapes_bvh(mut shapes: Vec<Box<Shape>>, t_range: &std::ops::Range<f32>) -> Box<Shape> {
+        let getter = match random::thread_rng().gen_range(0,3) {
+            0 => V3::get_x,
+            1 => V3::get_y,
+            _ => V3::get_z
+        };
+        shapes.sort_by(|a, b|
+            f32__cmp(
+                getter(&a.bounding_box(t_range).min),
+                getter(&b.bounding_box(t_range).min)));
+        let (left, right): (Box<dyn Shape>, Box<dyn Shape>) = match shapes.len() {
+            1 => {
+                return shapes.pop().unwrap();
+            },
+            2 => {
+                let snd = shapes.pop().unwrap();
+                let fst = shapes.pop().unwrap();
+                (fst, snd)
+            },
+            _ => {
+                let r = shapes.split_off(shapes.len()/2); // modifies 'shapes'!!!
+                (BvhNode::compute_shapes_bvh(shapes, t_range),
+                    BvhNode::compute_shapes_bvh(r, t_range))
+            }
+        };
+        let bbox = left.bounding_box(t_range)
+            .union(&right.bounding_box(t_range));
+        Box::new(BvhNode {
+            left: left,
+            right: right,
+            bbox
+        })
     }
 }
