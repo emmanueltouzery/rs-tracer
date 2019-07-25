@@ -98,28 +98,24 @@ impl BvhNode {
             f32_cmp(
                 getter(&a.bounding_box(t_range).min),
                 getter(&b.bounding_box(t_range).min)));
-        let (left, right): (Box<dyn Shape>, Box<dyn Shape>) = match shapes.len() {
-            1 => {
-                return shapes.pop().unwrap();
-            },
+        let build_bhv = |left: Box<Shape>, right: Box<Shape>| {
+            let bbox = left.bounding_box(t_range)
+                .union(&right.bounding_box(t_range));
+            Box::new(BvhNode { left, right, bbox })
+        };
+        match shapes.len() {
+            1 => shapes.pop().unwrap(),
             2 => {
                 let snd = shapes.pop().unwrap();
                 let fst = shapes.pop().unwrap();
-                (fst, snd)
+                build_bhv(fst, snd)
             },
             _ => {
                 let r = shapes.split_off(shapes.len()/2); // modifies 'shapes'!!!
-                (BvhNode::compute_shapes_bvh(shapes, t_range),
+                build_bhv(BvhNode::compute_shapes_bvh(shapes, t_range),
                     BvhNode::compute_shapes_bvh(r, t_range))
             }
-        };
-        let bbox = left.bounding_box(t_range)
-            .union(&right.bounding_box(t_range));
-        Box::new(BvhNode {
-            left: left,
-            right: right,
-            bbox
-        })
+        }
     }
 }
 
