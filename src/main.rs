@@ -32,7 +32,7 @@ fn closest_hit<'a>(objects: &'a [Box<Shape>], ray: &Ray, t_range: &std::ops::Ran
     objects
         .iter()
         .flat_map(|o| o.hit(ray, t_range))
-        .min_by(|o1, o2| f32__cmp(o1.t, o2.t))
+        .min_by(|o1, o2| f32_cmp(o1.t, o2.t))
 }
 
 fn color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> Color {

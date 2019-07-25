@@ -95,7 +95,7 @@ impl BvhNode {
             _ => V3::get_z
         };
         shapes.sort_by(|a, b|
-            f32__cmp(
+            f32_cmp(
                 getter(&a.bounding_box(t_range).min),
                 getter(&b.bounding_box(t_range).min)));
         let (left, right): (Box<dyn Shape>, Box<dyn Shape>) = match shapes.len() {

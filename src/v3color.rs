@@ -63,7 +63,7 @@ impl_op_ex!(/ |a: &V3, b: &f32| -> V3 {
 });
 
 // https://www.reddit.com/r/rust/comments/29kia3/no_ord_for_f32/cilrzik/
-pub fn f32__cmp(a: f32, b: f32) -> cmp::Ordering {
+pub fn f32_cmp(a: f32, b: f32) -> cmp::Ordering {
     a.partial_cmp(&b).unwrap_or(cmp::Ordering::Equal)
 }
 
