@@ -146,6 +146,7 @@ fn main() {
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
     let objects = vec![BvhNode::compute_shapes_bvh(scene(), &(0.001..std::f32::MAX))];
+    // let objects = scene();
 
     let look_from = V3 {x: 10.0, y: 1.8, z: 2.6};
     let look_at = V3 {x: 0.0, y: 0.5, z: 0.0};

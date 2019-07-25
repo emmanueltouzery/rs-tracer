@@ -122,3 +122,24 @@ impl BvhNode {
         })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::material::*;
+
+    #[test]
+    fn test_bvh_node_compute_shapes() {
+        let range = 0.001..std::f32::MAX;
+        let shape = BvhNode::compute_shapes_bvh(vec![
+            Box::new(Sphere {
+                center: V3 { x: 0.0, y: -1000.0, z: 0.0},
+                radius: 1000.0,
+                material: Box::new(Lambertian { albedo: Color { r: 0.5, g: 0.5, b: 0.5}})
+            })
+        ], &range);
+        let bb = shape.bounding_box(&range);
+        assert_eq!(V3 { x: 0.0, y: 0.0, z: 0.0}, bb.min);
+        assert_eq!(V3 { x: 0.0, y: 0.0, z: 0.0}, bb.max);
+    }
+}
