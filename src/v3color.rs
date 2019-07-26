@@ -1,4 +1,5 @@
 use std::ops;
+use std::cmp;
 
 pub struct Color {
     pub r: f32,
@@ -6,7 +7,7 @@ pub struct Color {
     pub b: f32
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct V3 {
     pub x: f32,
     pub y: f32,
@@ -61,6 +62,11 @@ impl_op_ex!(/ |a: &V3, b: &f32| -> V3 {
     }
 });
 
+// https://www.reddit.com/r/rust/comments/29kia3/no_ord_for_f32/cilrzik/
+pub fn f32_cmp(a: f32, b: f32) -> cmp::Ordering {
+    a.partial_cmp(&b).unwrap_or(cmp::Ordering::Equal)
+}
+
 impl V3 {
     pub fn to_color(&self) -> Color {
         Color {
@@ -96,5 +102,17 @@ impl V3 {
 
     pub fn reflect(v: &V3, n: &V3) -> V3 {
         v - 2.0 * V3::dot(v, n) * n
+    }
+
+    pub fn get_x(v: &V3) -> f32 {
+        v.x
+    }
+
+    pub fn get_y(v: &V3) -> f32 {
+        v.y
+    }
+
+    pub fn get_z(v: &V3) -> f32 {
+        v.z
     }
 }
