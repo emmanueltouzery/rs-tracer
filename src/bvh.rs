@@ -40,7 +40,7 @@ impl Aabb {
         if t1 < *tmax {
             *tmax = t1;
         }
-        tmax <= tmin
+        tmax > tmin
     }
 
     pub fn hit(&self, ray: &Ray, t_range: &std::ops::Range<f32>) -> bool {
@@ -98,44 +98,43 @@ impl BvhNode {
             f32_cmp(
                 getter(&a.bounding_box(t_range).min),
                 getter(&b.bounding_box(t_range).min)));
-        let build_bhv = |left: Box<Shape>, right: Box<Shape>| {
-            let bbox = left.bounding_box(t_range)
-                .union(&right.bounding_box(t_range));
-            Box::new(BvhNode { left, right, bbox })
-        };
         match shapes.len() {
             1 => shapes.pop().unwrap(),
             2 => {
                 let snd = shapes.pop().unwrap();
                 let fst = shapes.pop().unwrap();
-                build_bhv(fst, snd)
+                BvhNode::build_bhv(fst, snd, t_range)
             },
             _ => {
                 let r = shapes.split_off(shapes.len()/2); // modifies 'shapes'!!!
-                build_bhv(BvhNode::compute_shapes_bvh(shapes, t_range),
-                    BvhNode::compute_shapes_bvh(r, t_range))
+                BvhNode::build_bhv(BvhNode::compute_shapes_bvh(shapes, t_range),
+                    BvhNode::compute_shapes_bvh(r, t_range), t_range)
             }
         }
+    }
+
+    fn build_bhv(left: Box<Shape>, right: Box<Shape>, 
+            t_range: &std::ops::Range<f32>) -> Box<BvhNode> {
+        let bbox = left.bounding_box(t_range)
+            .union(&right.bounding_box(t_range));
+        Box::new(BvhNode { left, right, bbox })
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::material::*;
 
     #[test]
-    fn test_bvh_node_compute_shapes() {
+    fn test_aabb_hit() {
         let range = 0.001..std::f32::MAX;
-        let shape = BvhNode::compute_shapes_bvh(vec![
-            Box::new(Sphere {
-                center: V3 { x: 0.0, y: -1000.0, z: 0.0},
-                radius: 1000.0,
-                material: Box::new(Lambertian { albedo: Color { r: 0.5, g: 0.5, b: 0.5}})
-            })
-        ], &range);
-        let bb = shape.bounding_box(&range);
-        assert_eq!(V3 { x: 0.0, y: 0.0, z: 0.0}, bb.min);
-        assert_eq!(V3 { x: 0.0, y: 0.0, z: 0.0}, bb.max);
+        assert!(Aabb {
+            min: V3 {x: 1.0, y: 1.0, z: 1.0},
+            max: V3 {x: 2.0, y: 2.0, z: 2.0}
+        }.hit(&Ray {
+            origin: V3 {x: 0.0, y: 0.0, z: 0.0},
+            direction: V3 {x: 1.0, y: 1.0, z: 1.0},
+            time: 0.0
+        }, &range))
     }
 }
