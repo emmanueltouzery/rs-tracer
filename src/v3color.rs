@@ -1,10 +1,21 @@
 use std::ops;
 use std::cmp;
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Color {
     pub r: f32,
     pub g: f32,
     pub b: f32
+}
+
+impl Color {
+    pub fn to_v3(&self) -> V3 {
+        V3 {
+            x: self.r,
+            y: self.g,
+            z: self.b
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]

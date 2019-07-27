@@ -8,7 +8,8 @@ mod shapes;
 mod camera;
 mod material;
 mod bvh;
-use {v3color::*, shapes::*, camera::*, material::*, bvh::*};
+mod texture;
+use {v3color::*, shapes::*, camera::*, material::*, bvh::*, texture::*};
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use rand::{prelude as random, Rng};
@@ -47,7 +48,7 @@ fn _color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> V3 {
         Some(r) => {
             r.material.scatter(ray, &r)
                 .map_or_else(|| BLACK_V, |scatter_info| {
-                    scatter_info.attenuation
+                    scatter_info.attenuation.to_v3()
                         * _color_for_ray(objects, &scatter_info.scattered, depth+1)
                 })
         }
@@ -62,11 +63,15 @@ fn _color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> V3 {
 
 fn scene() -> Vec<Box<Shape>> {
     let mut rng = random::thread_rng();
+    let checker = Box::new(CheckerTexture {
+        even: Box::new(ConstantTexture { color: Color { r: 0.2, g: 0.3, b: 0.1 } }),
+        odd: Box::new(ConstantTexture { color: Color { r: 0.9, g: 0.9, b: 0.9 } }),
+    });
     let mut objects: Vec<Box<Shape>> = vec![
         Box::new(Sphere {
             center: V3 { x: 0.0, y: -1000.0, z: 0.0},
             radius: 1000.0,
-            material: Box::new(Lambertian { albedo: Color { r: 0.5, g: 0.5, b: 0.5}})
+            material: Box::new(Lambertian { albedo: checker })
         })
     ];
     for a in -11..11 {
@@ -86,11 +91,13 @@ fn scene() -> Vec<Box<Shape>> {
                         time1: 1.0,
                         radius: 0.2,
                         material: Box::new(Lambertian {
-                            albedo: Color {
-                                r: rng.gen::<f32>()*rng.gen::<f32>(),
-                                g: rng.gen::<f32>()*rng.gen::<f32>(),
-                                b: rng.gen::<f32>()*rng.gen::<f32>()
-                            }
+                            albedo: Box::new(ConstantTexture {
+                                color: Color {
+                                    r: rng.gen::<f32>()*rng.gen::<f32>(),
+                                    g: rng.gen::<f32>()*rng.gen::<f32>(),
+                                    b: rng.gen::<f32>()*rng.gen::<f32>()
+                                }
+                            })
                         })
                     }));
                 } else if choose_mat < 0.85 { // metal
@@ -127,7 +134,11 @@ fn scene() -> Vec<Box<Shape>> {
         Box::new(Sphere {
             center: V3 { x: -4.0, y: 1.0, z: 0.0},
             radius: 1.0,
-            material: Box::new(Lambertian { albedo: Color { r: 0.4, g: 0.2, b: 0.1}})
+            material: Box::new(Lambertian { 
+                albedo: Box::new(ConstantTexture {
+                        color: {Color { r: 0.4, g: 0.2, b: 0.1}}
+                    })
+            })
         }),
         Box::new(Sphere {
             center: V3 { x: 4.0, y: 1.0, z: 0.0 },

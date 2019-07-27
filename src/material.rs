@@ -1,9 +1,9 @@
-use crate::{v3color::*, shapes::*};
+use crate::{v3color::*, shapes::*, texture::*};
 
 use rand::{prelude as random, Rng};
 
 pub struct MaterialScatterInfo {
-    pub attenuation: V3,
+    pub attenuation: Color,
     pub scattered: Ray
 }
 
@@ -26,7 +26,7 @@ fn random_in_unit_sphere() -> V3 {
 }
 
 pub struct Lambertian {
-    pub albedo: Color
+    pub albedo: Box<Texture>
 }
 
 impl Material for Lambertian {
@@ -38,7 +38,7 @@ impl Material for Lambertian {
                 direction: target - hit_record.p,
                 time: _ray_in.time
             },
-            attenuation: V3 { x: self.albedo.r, y: self.albedo.g, z: self.albedo.b }
+            attenuation: self.albedo.value(&hit_record.p)
         })
     }
 }
@@ -59,7 +59,7 @@ impl Material for Metal {
                 direction: reflected + self.fuzz*random_in_unit_sphere(),
                 time: ray_in.time
             },
-            attenuation: V3 { x: self.albedo.r, y: self.albedo.g, z: self.albedo.b }
+            attenuation: self.albedo
         }).filter(|v| V3::dot(&v.scattered.direction, &hit_record.normal) > 0.0)
     }
 }
@@ -117,7 +117,7 @@ impl Material for Dielectric {
                         .map_or_else(reflected, refract_direction_fn),
                 time: ray_in.time
             },
-            attenuation: V3 { x: 1.0, y: 1.0, z: 1.0 }
+            attenuation: Color { r: 1.0, g: 1.0, b: 1.0 }
         })
     }
 }
