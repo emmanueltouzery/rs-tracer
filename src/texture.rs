@@ -31,3 +31,23 @@ impl Texture for CheckerTexture {
         }
     }
 }
+
+/// that one's mine, not from the book,
+/// so take it with a bucketful of salt
+pub struct SphericalCheckerTexture {
+    pub odd: Box<Texture>,
+    pub even: Box<Texture>
+}
+
+impl Texture for SphericalCheckerTexture {
+    fn value(&self, p: &V3) -> Color {
+        let modulate = |v: f32| f32::sin(10.0*v);
+        let sines = modulate(p.y.atan2(p.x))
+            * modulate(p.z.atan2(p.x));
+        if sines < 0.0 {
+            self.odd.value(p)
+        } else {
+            self.even.value(p)
+        }
+    }
+}

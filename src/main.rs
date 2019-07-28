@@ -11,6 +11,7 @@ mod bvh;
 mod texture;
 use {v3color::*, shapes::*, camera::*, material::*, bvh::*, texture::*};
 
+use std::env;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use rand::{prelude as random, Rng};
 use rayon::prelude::*;
@@ -59,6 +60,29 @@ fn _color_for_ray(objects: &[Box<Shape>], ray: &Ray, depth: i32) -> V3 {
                 + t*V3 { x: 0.5, y: 0.7, z: 1.0 })
         }
     }
+}
+
+fn two_spheres_scene() -> Vec<Box<Shape>> {
+    let checker = || Box::new(SphericalCheckerTexture {
+        even: Box::new(ConstantTexture { color: Color { r: 0.2, g: 0.3, b: 0.1 } }),
+        odd: Box::new(ConstantTexture { color: Color { r: 0.9, g: 0.9, b: 0.9 } }),
+    });
+    vec![
+        Box::new(Sphere {
+            center: V3 { x: 0.0, y: -10.0, z: 0.0},
+            radius: 10.0,
+            material: Box::new(Lambertian {
+                albedo: checker()
+            })
+        }),
+        Box::new(Sphere {
+            center: V3 { x: 0.0, y: 10.0, z: 0.0},
+            radius: 10.0,
+            material: Box::new(Lambertian {
+                albedo: checker()
+            })
+        })
+    ]
 }
 
 fn scene() -> Vec<Box<Shape>> {
@@ -154,9 +178,13 @@ fn scene() -> Vec<Box<Shape>> {
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
-    let objects = vec![BvhNode::compute_shapes_bvh(scene(), &(0.001..std::f32::MAX))];
+    let objects = vec![BvhNode::compute_shapes_bvh(
+        if args.contains(&String::from("--two-spheres")) { two_spheres_scene() } else { scene() },
+        &(0.001..std::f32::MAX))];
     // let objects = scene();
 
     let look_from = V3 {x: 10.0, y: 1.8, z: 2.6};
