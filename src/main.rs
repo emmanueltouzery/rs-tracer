@@ -9,7 +9,11 @@ mod camera;
 mod material;
 mod bvh;
 mod texture;
-use {v3color::*, shapes::*, camera::*, material::*, bvh::*, texture::*};
+mod perlin;
+use {
+    v3color::*, shapes::*, camera::*, 
+    material::*, bvh::*, texture::*, perlin::*
+    };
 
 use std::env;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -80,6 +84,26 @@ fn two_spheres_scene() -> Vec<Box<Shape>> {
             radius: 10.0,
             material: Box::new(Lambertian {
                 albedo: checker()
+            })
+        })
+    ]
+}
+
+fn noise_two_spheres_scene() -> Vec<Box<Shape>> {
+    let noise_t = || Box::new(NoiseTexture::new());
+    vec![
+        Box::new(Sphere {
+            center: V3 { x: 0.0, y: -1000.0, z: 0.0},
+            radius: 1000.0,
+            material: Box::new(Lambertian {
+                albedo: noise_t()
+            })
+        }),
+        Box::new(Sphere {
+            center: V3 { x: 0.0, y: 2.0, z: 0.0},
+            radius: 2.0,
+            material: Box::new(Lambertian {
+                albedo: noise_t()
             })
         })
     ]
@@ -183,7 +207,11 @@ fn main() {
     println!("P3\n{} {}\n255", WIDTH, HEIGHT);
 
     let objects = vec![BvhNode::compute_shapes_bvh(
-        if args.contains(&String::from("--two-spheres")) { two_spheres_scene() } else { scene() },
+        match args[1].as_ref() {
+            "--two-spheres" => two_spheres_scene(),
+            "--noise" => noise_two_spheres_scene(),
+            _ => scene()
+        },
         &(0.001..std::f32::MAX))];
     // let objects = scene();
 
